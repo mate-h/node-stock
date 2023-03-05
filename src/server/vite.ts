@@ -15,10 +15,15 @@ export async function createServer(
   hmrPort?: number
 ) {
   const resolve = (p: string) => path.resolve(__dirname, p)
+  const filePaths = {
+    index: resolve('../../index.html'),
+    indexProd: resolve('../../dist/client/index.html'),
+    entry: resolve('../../src/server/entry.tsx'),
+    entryProd: resolve('../../dist/server/entry.js'),
+    clientProd: resolve('../../dist/client'),
+  }
 
-  const indexProd = isProd
-    ? fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
-    : ''
+  const indexProd = isProd ? fs.readFileSync(filePaths.indexProd, 'utf-8') : ''
 
   const app = express()
 
@@ -49,7 +54,7 @@ export async function createServer(
   } else {
     app.use((await import('compression')).default())
     app.use(
-      (await import('serve-static')).default(resolve('dist/client'), {
+      (await import('serve-static')).default(filePaths.clientProd, {
         index: false,
       })
     )
@@ -63,13 +68,13 @@ export async function createServer(
       let render: Render
       if (!isProd) {
         // always read fresh template in dev
-        template = fs.readFileSync(resolve('../../index.html'), 'utf-8')
+        template = fs.readFileSync(filePaths.index, 'utf-8')
         template = await vite.transformIndexHtml(url, template)
-        render = (await vite.ssrLoadModule('/src/server/entry.tsx')).render
+        render = (await vite.ssrLoadModule(filePaths.entry)).render
       } else {
         template = indexProd
         // @ts-ignore
-        render = (await import('./dist/server/entry.js')).render
+        render = (await import(filePaths.entryProd)).render
       }
 
       const { body, head, redirect } = render(req)
