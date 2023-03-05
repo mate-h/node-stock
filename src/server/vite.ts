@@ -18,7 +18,7 @@ export async function createServer(
   const filePaths = {
     index: resolve('../../index.html'),
     indexProd: resolve('../../dist/client/index.html'),
-    entry: resolve('../../src/server/entry.tsx'),
+    entry: resolve('../../src/server/entry.ts'),
     entryProd: resolve('../../dist/server/entry.js'),
     clientProd: resolve('../../dist/client'),
   }
