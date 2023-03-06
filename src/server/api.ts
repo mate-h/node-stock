@@ -12,9 +12,8 @@ const c = config as admin.ServiceAccount
 c.privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
 
 admin.initializeApp({
-  credential: admin.credential.cert(config as admin.ServiceAccount)
-});
-
+  credential: admin.credential.cert(config as admin.ServiceAccount),
+})
 
 const t = initTRPC.create()
 const router = t.router
@@ -30,13 +29,16 @@ const userList: User[] = [
   },
 ]
 export const appRouter = router({
-  test: publicProcedure
-    .query(async (req) => {
-      const data = await admin.firestore().collection('test').get()
-      // key by id
-      const result = lodash.keyBy(data.docs, (doc) => doc.id)
-      return result
-    }),
+  test: publicProcedure.query(async (req) => {
+    const data = await admin.firestore().collection('test').get()
+    // key by id
+    const result = data.docs.reduce((acc, doc) => {
+      const id = doc.id
+      const data = doc.data()
+      return lodash.set(acc, id, data)
+    }, {})
+    return result
+  }),
   userById: publicProcedure
     .input((val: unknown) => {
       if (typeof val === 'string') return val
