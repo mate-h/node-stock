@@ -19,9 +19,9 @@ export async function createServer(
     index: resolve('../../index.html'),
     indexProd: resolve('../../dist/client/index.html'),
     entry: resolve('../../src/server/entry.ts'),
+    api: resolve('../../src/server/api.ts'),
     entryProd: resolve('../../dist/server/entry.js'),
     clientProd: resolve('../../dist/client'),
-    api: resolve('../../src/server/api.ts'),
     apiProd: resolve('../../src/server/api.js'),
   }
 

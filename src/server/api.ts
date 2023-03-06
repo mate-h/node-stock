@@ -3,6 +3,19 @@ import { inferAsyncReturnType } from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
+import admin from 'firebase-admin'
+import config from './config.js'
+import lodash from 'lodash'
+
+const c = config as admin.ServiceAccount
+
+c.privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+
+admin.initializeApp({
+  credential: admin.credential.cert(config as admin.ServiceAccount)
+});
+
+
 const t = initTRPC.create()
 const router = t.router
 const publicProcedure = t.procedure
@@ -17,6 +30,13 @@ const userList: User[] = [
   },
 ]
 export const appRouter = router({
+  test: publicProcedure
+    .query(async (req) => {
+      const data = await admin.firestore().collection('test').get()
+      // key by id
+      const result = lodash.keyBy(data.docs, (doc) => doc.id)
+      return result
+    }),
   userById: publicProcedure
     .input((val: unknown) => {
       if (typeof val === 'string') return val

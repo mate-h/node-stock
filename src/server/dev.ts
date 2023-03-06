@@ -1,4 +1,7 @@
-import { createServer } from "."
+import { createServer } from '.'
+import * as dotenv from 'dotenv'
+
+dotenv.config()
 
 const isTest = process.env.VITEST
 
