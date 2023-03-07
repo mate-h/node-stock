@@ -1,23 +1,12 @@
 // request handler for stocks
 import { inferAsyncReturnType } from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express'
-import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
-import admin from 'firebase-admin'
-import config from './config.js'
 import lodash from 'lodash'
+import { router, publicProcedure } from './trpc.js'
+import admin from 'firebase-admin'
+import { stockCandles } from './api/stock-candles.js'
 
-const c = config as admin.ServiceAccount
-c['private_key'] = process.env.PRIVATE_KEY?.replace(/\\n/g, '\n')
-c['private_key_id'] = process.env.PRIVATE_KEY_ID
-
-admin.initializeApp({
-  credential: admin.credential.cert(config as admin.ServiceAccount),
-})
-
-const t = initTRPC.create()
-const router = t.router
-const publicProcedure = t.procedure
 interface User {
   id: string
   name: string
@@ -28,8 +17,9 @@ const userList: User[] = [
     name: 'MATEH',
   },
 ]
+
 export const appRouter = router({
-  test: publicProcedure.query(async (req) => {
+  test: publicProcedure.query(async () => {
     const data = await admin.firestore().collection('test').get()
     // key by id
     const result = data.docs.reduce((acc, doc) => {
@@ -60,6 +50,9 @@ export const appRouter = router({
       userList.push(user)
       return user
     }),
+
+  // procedure to fetch the stock candles between two dates
+  stockCandles,
 })
 export type AppRouter = typeof appRouter
 

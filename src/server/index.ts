@@ -1,11 +1,8 @@
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import express from 'express'
 import type { ViteDevServer } from 'vite'
-import type { Render } from './types'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { initFirebase } from './admin.js'
+import { createMiddleware } from './api.js'
+import { createSsrMiddleware, filePaths } from './ssr.js'
 
 const isTest = process.env.VITEST
 
@@ -14,22 +11,11 @@ export async function createServer(
   isProd = process.env.NODE_ENV === 'production',
   hmrPort?: number
 ) {
-  const resolve = (p: string) => path.resolve(__dirname, p)
-  const filePaths = {
-    index: resolve('../../index.html'),
-    indexProd: resolve('../../dist/client/index.html'),
-    entry: resolve('../../src/server/entry.ts'),
-    api: resolve('../../src/server/api.ts'),
-    entryProd: resolve('../../dist/server/entry.js'),
-    clientProd: resolve('../../dist/client'),
-    apiProd: resolve('../../src/server/api.js'),
-  }
-
-  const indexProd = isProd ? fs.readFileSync(filePaths.indexProd, 'utf-8') : ''
+  initFirebase()
 
   const app = express()
 
-  let vite: ViteDevServer
+  let vite: ViteDevServer | undefined
   if (!isProd) {
     vite = await (
       await import('vite')
@@ -53,10 +39,6 @@ export async function createServer(
 
     // use vite's connect instance as middleware
     app.use(vite!.middlewares)
-
-    const { createMiddleware } = await vite.ssrLoadModule(filePaths.api)
-    const apiMiddleware = createMiddleware()
-    app.use('/api', apiMiddleware)
   } else {
     app.use((await import('compression')).default())
     app.use(
@@ -64,47 +46,11 @@ export async function createServer(
         index: false,
       })
     )
-    const { createMiddleware } = await import(filePaths.apiProd)
-    const apiMiddleware = createMiddleware()
-    app.use('/api', apiMiddleware)
   }
 
-  app.use('*', async (req, res) => {
-    try {
-      const url = req.originalUrl
+  app.use('/api', createMiddleware())
 
-      let template: string
-      let render: Render
-      if (!isProd) {
-        // always read fresh template in dev
-        template = fs.readFileSync(filePaths.index, 'utf-8')
-        template = await vite.transformIndexHtml(url, template)
-        render = (await vite.ssrLoadModule(filePaths.entry)).render
-      } else {
-        template = indexProd
-        // @ts-ignore
-        render = (await import(filePaths.entryProd)).render
-      }
-
-      const { body, head, redirect } = render(req)
-
-      if (redirect) {
-        // Somewhere a `<Redirect>` was rendered
-        return res.redirect(301, redirect)
-      }
-
-      const html = template
-        .replace(`<!--app-body-->`, body)
-        .replace(`<!--app-head-->`, head)
-
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
-    } catch (e) {
-      const err = e as Error
-      !isProd && vite.ssrFixStacktrace(err)
-      console.log(err.stack)
-      res.status(500).end(err.stack)
-    }
-  })
+  app.use('*', createSsrMiddleware({ isProd, vite }))
 
   return { app, vite: vite! }
 }
