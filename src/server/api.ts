@@ -8,8 +8,8 @@ import config from './config.js'
 import lodash from 'lodash'
 
 const c = config as admin.ServiceAccount
-
-c.privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+c['private_key'] = process.env.PRIVATE_KEY?.replace(/\\n/g, '\n')
+c['private_key_id'] = process.env.PRIVATE_KEY_ID
 
 admin.initializeApp({
   credential: admin.credential.cert(config as admin.ServiceAccount),

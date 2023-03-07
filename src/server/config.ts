@@ -1,7 +1,7 @@
 export default {
   "type": "service_account",
   "project_id": "node-stock",
-  "private_key_id": "841c27f89cb6b68403af3d5f83e0998ec3a5ccd7",
+  "private_key_id": "",
   "private_key": "",
   "client_email": "firebase-adminsdk-l3osa@node-stock.iam.gserviceaccount.com",
   "client_id": "104954414066318318210",
