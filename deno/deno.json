@@ -1,0 +1,9 @@
+{
+  "name": "deno",
+  "version": "1.0.0",
+  "description": "deno",
+  "main": "index.js",
+  "tasks": {
+    "dev": "deno run --allow-net index.ts"
+  }
+}

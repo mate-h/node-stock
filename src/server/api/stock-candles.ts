@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { publicProcedure } from '../trpc.js'
-import admin from 'firebase-admin'
 import { createProcedure } from '../proc.js'
 import { getCandles } from '../finnhub/index.js'
 import { CandleDatum, GetCandles, getUnit } from '@mateh/react-stock'
@@ -51,51 +50,10 @@ async function queryStocks({
   range,
   resolution,
 }: z.infer<typeof input>) {
-  const docs = await admin
-    .firestore()
-    .collection('stocks')
-    .doc(symbol)
-    .collection(resolution)
-    .where('date', '>=', range[0])
-    .where('date', '<=', range[1])
-    .get()
-  const result = docs.docs.map((doc) => {
-    const d = doc.data()
-    const date = d.date.toDate()
-    return lodash.set(d, 'date', date)
-  }) as CandleDatum[]
+  console.log('[DEBUG] queryStocks', symbol, range, resolution)
+  const result = [] as CandleDatum[]
   console.log('[DEBUG] queryStocks result length', result.length)
   return result
-}
-
-/**
- * Updates the cache with the data
- * @param symbol the symbol of the data
- * @param resolution the resolution of the data
- * @param data the data to update the cache with
- * @returns a promise that resolves when the cache is updated
- */
-async function updateCache(
-  symbol: string,
-  resolution: string,
-  data: CandleDatum[]
-) {
-  // save the results to firestore
-  const grouped = lodash.chunk(data, 500)
-  for (const group of grouped) {
-    const batch = admin.firestore().batch()
-    group.forEach((datum) => {
-      const ref = admin
-        .firestore()
-        .collection('stocks')
-        .doc(symbol)
-        .collection(resolution)
-        .doc(datum.date.toISOString())
-      batch.set(ref, datum)
-    })
-    await batch.commit()
-  }
-  console.log('[DEBUG] updateCache', symbol, resolution, data.length)
 }
 
 /**
@@ -124,7 +82,6 @@ function expectedDataRange({ range, resolution }: z.infer<typeof input>) {
 export const stockCandles = publicProcedure
   .input(input)
   .output(output)
-  // set the cac
   .query(async ({ input }) => {
     const expectedRange = expectedDataRange(input)
     let data = await queryStocks(input)
@@ -133,7 +90,6 @@ export const stockCandles = publicProcedure
       console.log('[DEBUG] input', input)
       data = await getCandles(input)
       console.log('[DEBUG] getCandles', data.length)
-      await updateCache(input.symbol, input.resolution, data)
       return data
     }
     return data

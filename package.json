@@ -1,45 +1,45 @@
 {
   "name": "node-stock",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --experimental-specifier-resolution=node --experimental-modules --no-warnings --loader ts-node/esm src/server/dev.ts",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --ssr src/server/entry.ts --outDir dist/server",
-    "generate": "vite build --outDir dist/static && npm run build:server && node prerender",
-    "serve": "NODE_ENV=production node --experimental-specifier-resolution=node --experimental-modules --no-warnings --loader ts-node/esm src/server/dev.ts",
     "deploy": "vercel build && vercel deploy --prebuilt",
-    "deploy:prod": "vercel build --prod && vercel deploy --prebuilt --prod"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.17",
-    "@types/lodash": "^4.14.191",
-    "@types/node": "^18.14.6",
-    "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.5",
-    "vercel": "^28.16.15",
-    "vite": "^4.1.4"
+    "deploy:prod": "vercel build --prod && vercel deploy --prebuilt --prod",
+    "dev": "node --experimental-specifier-resolution=node --experimental-modules --no-warnings --loader ts-node/esm src/server/dev.ts",
+    "generate": "vite build --outDir dist/static && npm run build:server && node prerender",
+    "serve": "NODE_ENV=production node --experimental-specifier-resolution=node --experimental-modules --no-warnings --loader ts-node/esm src/server/dev.ts"
   },
   "dependencies": {
     "@mateh/react-stock": "^1.0.10",
-    "@trpc/client": "^10.14.1",
-    "@trpc/server": "^10.14.1",
+    "@trpc/client": "^10.25.0",
+    "@trpc/server": "^10.25.0",
     "@types/compression": "^1.7.2",
     "@types/serve-static": "^1.15.1",
     "compression": "^1.7.4",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "firebase-admin": "^11.5.0",
+    "firebase-admin": "^11.8.0",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "redis": "^4.6.5",
+    "redis": "^4.6.6",
     "serve-static": "^1.15.0",
-    "superjson": "^1.12.2",
+    "superjson": "^1.12.3",
     "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/lodash": "^4.14.194",
+    "@types/node": "^20.1.1",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4",
+    "vercel": "^29.1.1",
+    "vite": "^4.3.5"
   }
 }
